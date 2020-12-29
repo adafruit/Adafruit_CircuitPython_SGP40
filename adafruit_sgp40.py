@@ -32,24 +32,17 @@ from time import sleep
 from struct import unpack_from, pack_into
 from micropython import const
 import adafruit_bus_device.i2c_device as i2c_device
-from adafruit_register.i2c_struct import ROUnaryStruct, Struct
-from adafruit_register.i2c_bits import RWBits
-from adafruit_register.i2c_bit import RWBit, ROBit
 
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_SGP40.git"
 
 _WORD_LEN = 2
+# no point in generating this each time
+_READ_CMD = [0x26, 0x0F, 0x7F, 0xFF, 0x8F, 0x66, 0x66, 0x93]
 
 
 class SGP40:
     """Class to use the SGP40 Ambient Light and UV sensor"""
-
-    # _reset_bit = RWBit(_CTRL, 4)
-    # _gain_bits = RWBits(3, _GAIN, 0)
-    # _id_reg = ROUnaryStruct(0xFF, "<B")
-    # _uvs_data_reg = UnalignedStruct(_UVSDATA, "<I", 24, 3)  # bits, bytes to read/write
-    """Ask the sensor if new data is available"""
 
     def __init__(self, i2c, address=0x59):
         self.i2c_device = i2c_device.I2CDevice(i2c, address)
@@ -60,33 +53,30 @@ class SGP40:
     def initialize(self):
         """Reset the sensor to it's initial unconfigured state and configure it with sensible
         defaults so it can be used"""
-
+        # check serial number
         self._command_buffer[0] = 0x36
         self._command_buffer[1] = 0x82
         serialnumber = self.readWordFromCommand(3)
-        print("Serial Number:")
-        for i in serialnumber:
-            print("0x{:04X}".format(i), end=" ")
-        print("")
+
+        if serialnumber[0] != 0x0000:
+            raise RuntimeError("Serial number does not match")
+
+        # Check feature set
         self._command_buffer[0] = 0x20
         self._command_buffer[1] = 0x2F
         featureset = self.readWordFromCommand()
-        print("Feature Set:")
-        for i in featureset:
-            print("0x{:04X}".format(i), end=" ")
-        print("")
+        if featureset[0] != 0x3220:
+
+            raise RuntimeError("Feature set does not match: %s" % hex(featureset[0]))
 
         # VocAlgorithm_init(&voc_algorithm_params)
 
         # Self Test
-        print("Self test:")
-
         self._command_buffer[0] = 0x28
         self._command_buffer[1] = 0x0E
-        reply = self.readWordFromCommand(delay_ms=250)
-        if 0xD400 != reply[0]:
+        self_test = self.readWordFromCommand(delay_ms=250)
+        if self_test[0] != 0xD400:
             raise RuntimeError("Self test failed")
-        print("\tOK\n")
         self._reset()
 
     def _reset(self):
@@ -95,37 +85,20 @@ class SGP40:
         self._command_buffer[0] = 0x00
         self._command_buffer[1] = 0x06
         try:
-            print("Reset:")
-            self.readWordFromCommand()
+            self.readWordFromCommand(delay_ms=50)
         except OSError:
-            print("\tGot expected OSError from reset")
+            # print("\tGot expected OSError from reset")
+            pass
+        sleep(1)
 
     @property
     def raw(self):
         """The raw gas value"""
-        # uint8_t command[8]
-        # uint16_t reply
-
-        # command[0] = 0x26
-        # command[1] = 0x0F
-
-        # uint16_t rhticks = (uint16_t)((humidity * 65535) / 100 + 0.5)
-        # command[2] = rhticks >> 8
-        # command[3] = rhticks & 0xFF
-        # command[4] = generateCRC(command + 2, 2)
-        # uint16_t tempticks = (uint16_t)(((temperature + 45) * 65535) / 175)
-        # command[5] = tempticks >> 8
-        # command[6] = tempticks & 0xFF
-        # command[7] = generateCRC(command + 5, 2)
-        #
-
-        # if (!readWordFromCommand(command, 8, 250, &reply, 1))
-        #     return 0x0
-
-        # return reply
-        # }
-
-        return 101
+        # recycle a single buffer
+        self._command_buffer = bytearray(_READ_CMD)
+        read_value = self.readWordFromCommand(delay_ms=250)
+        self._command_buffer = bytearray(2)
+        return read_value[0]
 
     def readWordFromCommand(
         self,
@@ -139,8 +112,6 @@ class SGP40:
             readlen (int, optional): The number of bytes to read. Defaults to 1.
         """
 
-        # print("Command Buffer:")
-        # print(["0x{:02X}".format(i) for i in self._command_buffer])
         with self.i2c_device as i2c:
             i2c.write(self._command_buffer)
 
