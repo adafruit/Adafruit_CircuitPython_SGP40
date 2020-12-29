@@ -41,89 +41,6 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_SGP40.git"
 
 _WORD_LEN = 2
 
-class CV:
-    """struct helper"""
-
-    @classmethod
-    def add_values(cls, value_tuples):
-        """Add CV values to the class"""
-        cls.string = {}
-        cls.lsb = {}
-
-        for value_tuple in value_tuples:
-            name, value, string, lsb = value_tuple
-            setattr(cls, name, value)
-            cls.string[value] = string
-            cls.lsb[value] = lsb
-
-    @classmethod
-    def is_valid(cls, value):
-        """Validate that a given value is a member"""
-        return value in cls.string
-
-
-class Gain(CV):
-    """Options for `gain`
-
-    From https://www.tablesgenerator.com/text_tables w/ 'use restructuredText syntax' option
-    +---------------------------+----------------------------+
-    | Gain                      | Raw Measurement Multiplier |
-    +===========================+============================+
-    | :py:const:`Gain.GAIN_1X`  | 1                          |
-    +---------------------------+----------------------------+
-    | :py:const:`Gain.GAIN_3X`  | 3                          |
-    +---------------------------+----------------------------+
-    | :py:const:`Gain.GAIN_6X`  | 6                          |
-    +---------------------------+----------------------------+
-    | :py:const:`Gain.GAIN_9X`  | 9                          |
-    +---------------------------+----------------------------+
-    | :py:const:`Gain.GAIN_18X` | 18                         |
-    +---------------------------+----------------------------+
-
-    """
-
-
-Gain.add_values(
-    (
-        ("GAIN_1X", 0, "1X", None),
-        ("GAIN_3X", 1, "3X", None),
-        ("GAIN_6X", 2, "6X", None),
-        ("GAIN_9X", 3, "9X", None),
-        ("GAIN_18X", 4, "18X", None),
-    )
-)
-
-
-class UnalignedStruct(Struct):
-    """Class for reading multi-byte data registers with a data length less than the full bitwidth
-    of the registers. Most registers of this sort are left aligned to preserve the sign bit"""
-
-    def __init__(self, register_address, struct_format, bitwidth, length):
-        super().__init__(register_address, struct_format)
-        self._width = bitwidth
-        self._num_bytes = length
-
-    def __get__(self, obj, objtype=None):
-        # read bytes into buffer at correct alignment
-        raw_value = unpack_from(self.format, self.buffer, offset=1)[0]
-
-        with obj.i2c_device as i2c:
-            i2c.write_then_readinto(
-                self.buffer,
-                self.buffer,
-                out_start=0,
-                out_end=1,
-                in_start=2,  # right aligned
-                # in_end=4 # right aligned
-            )
-        raw_value = unpack_from(self.format, self.buffer, offset=1)[0]
-        return raw_value >> 8
-
-    def __set__(self, obj, value):
-        pack_into(self.format, self.buffer, 1, value)
-        with obj.i2c_device as i2c:
-            i2c.write(self.buffer)
-
 
 class SGP40:
     """Class to use the SGP40 Ambient Light and UV sensor"""
@@ -135,12 +52,8 @@ class SGP40:
     """Ask the sensor if new data is available"""
 
     def __init__(self, i2c, address=0x59):
-        print("Address:", hex(address), "(%s)"%type(address))
-
         self.i2c_device = i2c_device.I2CDevice(i2c, address)
-        # if self._id_reg != "0xFF":
-
-        #     raise RuntimeError("Unable to find SGP40; check your wiring")
+        self._command_buffer = bytearray(2)
 
         self.initialize()
 
@@ -148,86 +61,94 @@ class SGP40:
         """Reset the sensor to it's initial unconfigured state and configure it with sensible
         defaults so it can be used"""
 
-        command = bytearray(2)
-        command[0] = 0x36
-        command[1] = 0x82
-        serialnumber = []
-
-        self.readWordFromCommand(command, 2, 10, serialnumber, 3)
+        self._command_buffer[0] = 0x36
+        self._command_buffer[1] = 0x82
+        serialnumber = self.readWordFromCommand(3)
         print("Serial Number:")
         for i in serialnumber:
             print("0x{:04X}".format(i), end=" ")
+        print("")
+        self._command_buffer[0] = 0x20
+        self._command_buffer[1] = 0x2F
+        featureset = self.readWordFromCommand()
+        print("Feature Set:")
+        for i in featureset:
+            print("0x{:04X}".format(i), end=" ")
+        print("")
 
-        # uint16_t featureset;
-        # command[0] = 0x20;
-        # command[1] = 0x2F;
-        # if (!readWordFromCommand(command, 2, 10, &featureset, 1))
-        #     return false;
-        # // print("Featureset 0x"); println(featureset, HEX), end="")
+        # VocAlgorithm_init(&voc_algorithm_params)
 
-        # VocAlgorithm_init(&voc_algorithm_params);
+        # Self Test
+        print("Self test:")
 
-        # return selfTest();
+        self._command_buffer[0] = 0x28
+        self._command_buffer[1] = 0x0E
+        reply = self.readWordFromCommand(delay_ms=250)
+        if 0xD400 != reply[0]:
+            raise RuntimeError("Self test failed")
+        print("\tOK\n")
         self._reset()
 
     def _reset(self):
-        command = bytearray(2)
-        command[0] = 0x00
-        command[1] = 0x06
-        self.readWordFromCommand(command, 2, 10)
+        # This is a general call Reset. Several sensors may see this and it doesn't appear to
+        # ACK before resetting
+        self._command_buffer[0] = 0x00
+        self._command_buffer[1] = 0x06
+        try:
+            print("Reset:")
+            self.readWordFromCommand()
+        except OSError:
+            print("\tGot expected OSError from reset")
 
     @property
     def raw(self):
         """The raw gas value"""
-        # return readWordFromCommand(poo)
-        # uint8_t command[8];
-        # uint16_t reply;
+        # uint8_t command[8]
+        # uint16_t reply
 
-        # command[0] = 0x26;
-        # command[1] = 0x0F;
+        # command[0] = 0x26
+        # command[1] = 0x0F
 
-        # uint16_t rhticks = (uint16_t)((humidity * 65535) / 100 + 0.5);
-        # command[2] = rhticks >> 8;
-        # command[3] = rhticks & 0xFF;
-        # command[4] = generateCRC(command + 2, 2);
-        # uint16_t tempticks = (uint16_t)(((temperature + 45) * 65535) / 175);
-        # command[5] = tempticks >> 8;
-        # command[6] = tempticks & 0xFF;
-        # command[7] = generateCRC(command + 5, 2);
-        # ;
+        # uint16_t rhticks = (uint16_t)((humidity * 65535) / 100 + 0.5)
+        # command[2] = rhticks >> 8
+        # command[3] = rhticks & 0xFF
+        # command[4] = generateCRC(command + 2, 2)
+        # uint16_t tempticks = (uint16_t)(((temperature + 45) * 65535) / 175)
+        # command[5] = tempticks >> 8
+        # command[6] = tempticks & 0xFF
+        # command[7] = generateCRC(command + 5, 2)
+        #
 
         # if (!readWordFromCommand(command, 8, 250, &reply, 1))
-        #     return 0x0;
+        #     return 0x0
 
-        # return reply;
+        # return reply
         # }
-
-
-
 
         return 101
 
-    def readWordFromCommand(self, command_buffer, commandLength, delay_ms, readdata_buffer=None,
-                           readlen=None):
+    def readWordFromCommand(
+        self,
+        delay_ms=10,
+        readlen=1,
+    ):
         """readWordFromCommand - send a given command code and read the result back
 
         Args:
-            command_buffer (bytearray): The bytarray with the given command bytes
-            commandLength (int): The length of the command buffer in bytes
-            delay_ms (int): The delay between write and read, in milliseconds
-            readdata_buffer (bytearray, optional): The buffer to read the results of the command into. Defaults to None.
-            readlen (int, optional): The number of bytes to read. Defaults to None.
+            delay_ms (int, optional): The delay between write and read, in milliseconds. Defaults to 10ms
+            readlen (int, optional): The number of bytes to read. Defaults to 1.
         """
 
-        print("Command Buffer:")
-        print(["0x{:02X}".format(i) for i in command_buffer])
+        # print("Command Buffer:")
+        # print(["0x{:02X}".format(i) for i in self._command_buffer])
         with self.i2c_device as i2c:
-            i2c.write(command_buffer)
+            i2c.write(self._command_buffer)
 
-        sleep(round(delay_ms*0.001, 3))
+        sleep(round(delay_ms * 0.001, 3))
 
-        if (readlen == None):
+        if readlen == None:
             return None
+        readdata_buffer = []
 
         # The number of bytes to rad back, based on the number of words to read
         replylen = readlen * (_WORD_LEN + 1)
@@ -237,14 +158,15 @@ class SGP40:
         with self.i2c_device as i2c:
             i2c.readinto(replybuffer, end=replylen)
 
-        print("Buffer:")
-        print(["0x{:02X}".format(i) for i in replybuffer])
+        # print("Buffer:")
+        # print(["0x{:02X}".format(i) for i in replybuffer])
 
         for i in range(0, replylen, 3):
             if not self._check_crc8(replybuffer[i : i + 2], replybuffer[i + 2]):
                 raise RuntimeError("CRC check failed while reading data")
             readdata_buffer.append(unpack_from(">H", replybuffer[i : i + 2])[0])
 
+        return readdata_buffer
 
     @staticmethod
     def _check_crc8(crc_buffer, crc_value):
