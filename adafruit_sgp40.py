@@ -29,8 +29,7 @@ Implementation Notes
 
 """
 from time import sleep
-from struct import unpack_from, pack_into
-from micropython import const
+from struct import unpack_from
 import adafruit_bus_device.i2c_device as i2c_device
 
 __version__ = "0.0.0-auto.0"
@@ -56,7 +55,7 @@ class SGP40:
         # check serial number
         self._command_buffer[0] = 0x36
         self._command_buffer[1] = 0x82
-        serialnumber = self.readWordFromCommand(3)
+        serialnumber = self._read_word_from_command(3)
 
         if serialnumber[0] != 0x0000:
             raise RuntimeError("Serial number does not match")
@@ -64,7 +63,7 @@ class SGP40:
         # Check feature set
         self._command_buffer[0] = 0x20
         self._command_buffer[1] = 0x2F
-        featureset = self.readWordFromCommand()
+        featureset = self._read_word_from_command()
         if featureset[0] != 0x3220:
 
             raise RuntimeError("Feature set does not match: %s" % hex(featureset[0]))
@@ -74,7 +73,7 @@ class SGP40:
         # Self Test
         self._command_buffer[0] = 0x28
         self._command_buffer[1] = 0x0E
-        self_test = self.readWordFromCommand(delay_ms=250)
+        self_test = self._read_word_from_command(delay_ms=250)
         if self_test[0] != 0xD400:
             raise RuntimeError("Self test failed")
         self._reset()
@@ -85,7 +84,7 @@ class SGP40:
         self._command_buffer[0] = 0x00
         self._command_buffer[1] = 0x06
         try:
-            self.readWordFromCommand(delay_ms=50)
+            self._read_word_from_command(delay_ms=50)
         except OSError:
             # print("\tGot expected OSError from reset")
             pass
@@ -96,28 +95,30 @@ class SGP40:
         """The raw gas value"""
         # recycle a single buffer
         self._command_buffer = bytearray(_READ_CMD)
-        read_value = self.readWordFromCommand(delay_ms=250)
+        read_value = self._read_word_from_command(delay_ms=250)
         self._command_buffer = bytearray(2)
         return read_value[0]
 
-    def readWordFromCommand(
+    def _read_word_from_command(
         self,
         delay_ms=10,
         readlen=1,
     ):
-        """readWordFromCommand - send a given command code and read the result back
+        """_read_word_from_command - send a given command code and read the result back
 
         Args:
-            delay_ms (int, optional): The delay between write and read, in milliseconds. Defaults to 10ms
+            delay_ms (int, optional): The delay between write and read, in milliseconds.
+                Defaults to 10ms
             readlen (int, optional): The number of bytes to read. Defaults to 1.
         """
+        # TODO: Take 2-byte command as int (0x280E, 0x0006) and packinto command buffer
 
         with self.i2c_device as i2c:
             i2c.write(self._command_buffer)
 
         sleep(round(delay_ms * 0.001, 3))
 
-        if readlen == None:
+        if readlen is None:
             return None
         readdata_buffer = []
 
