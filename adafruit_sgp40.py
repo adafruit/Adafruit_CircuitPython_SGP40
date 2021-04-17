@@ -15,13 +15,12 @@ Implementation Notes
 
 **Hardware:**
 
-* Adafruit SGP40 Breakout <https://www.adafruit.com/product/4829>
+* Adafruit SGP40 Air Quality Sensor Breakout - VOC Index <https://www.adafruit.com/product/4829>
 
 **Software and Dependencies:**
 
 * Adafruit CircuitPython firmware for the supported boards:
   https://github.com/adafruit/circuitpython/releases
-
 
 
  * Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
@@ -41,7 +40,39 @@ _READ_CMD = [0x26, 0x0F, 0x7F, 0xFF, 0x8F, 0x66, 0x66, 0x93]
 
 
 class SGP40:
-    """Class to use the SGP40 Ambient Light and UV sensor"""
+    """
+    Class to use the SGP40 Ambient Light and UV sensor
+
+    :param ~busio.I2C i2c: The I2C bus the SGP40 is connected to.
+    :param int address: The I2C address of the device. Defaults to :const:`0x59`
+
+
+    **Quickstart: Importing and using the SGP40 temperature sensor**
+
+        Here is one way of importing the `SGP40` class so you can use it with the name ``sgp``.
+        First you will need to import the libraries to use the sensor
+
+        .. code-block:: python
+
+            import busio
+            import board
+            import adafruit_sgp40
+
+        Once this is done you can define your `busio.I2C` object and define your sensor object
+
+        .. code-block:: python
+
+            i2c = busio.I2C(board.SCL, board.SDA)
+            sgp = adafruit_sgp40.SGP40(i2c)
+
+        Now you have access to the raw gas value using the :attr:`raw` attribute
+
+        .. code-block:: python
+
+            raw_gas_value = sgp.raw
+
+
+    """
 
     def __init__(self, i2c, address=0x59):
         self.i2c_device = i2c_device.I2CDevice(i2c, address)
