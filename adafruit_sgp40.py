@@ -63,7 +63,7 @@ class SGP40:
         .. code-block:: python
 
             i2c = busio.I2C(board.SCL, board.SDA)
-            ms = adafruit_sgp40.SGP40(i2c)
+            sgp = adafruit_sgp40.SGP40(i2c)
 
         Now you have access to the raw gas value using the :attr:`raw` attribute
 
