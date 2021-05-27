@@ -9,6 +9,7 @@ CircuitPython library for the Adafruit SGP40 Air Quality Sensor / VOC Index Sens
 
 
 * Author(s): Bryan Siepert
+             Keith Murray
 
 Implementation Notes
 --------------------
@@ -36,7 +37,7 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_SGP40.git"
 
 _WORD_LEN = 2
 # no point in generating this each time
-_READ_CMD = [0x26, 0x0F, 0x7F, 0xFF, 0x8F, 0x66, 0x66, 0x93]
+_READ_CMD = [0x26, 0x0F, 0x7F, 0xFF, 0x8F, 0x66, 0x66, 0x93] # Generated from temp 25c, humidity 49.999%
 
 
 class SGP40:
@@ -79,6 +80,7 @@ class SGP40:
         self._command_buffer = bytearray(2)
 
         self.initialize()
+
 
     def initialize(self):
         """Reset the sensor to it's initial unconfigured state and configure it with sensible
@@ -153,7 +155,7 @@ class SGP40:
             return None
         readdata_buffer = []
 
-        # The number of bytes to rad back, based on the number of words to read
+        # The number of bytes to read back, based on the number of words to read
         replylen = readlen * (_WORD_LEN + 1)
         # recycle buffer for read/write w/length
         replybuffer = bytearray(replylen)
@@ -182,3 +184,89 @@ class SGP40:
                 else:
                     crc = crc << 1
         return crc_value == (crc & 0xFF)  # check against the bottom 8 bits
+
+    def _generate_crc(crc_buffer):
+        crc = 0xFF
+        for byte in crc_buffer:
+            crc ^= byte
+            for _ in range(8):
+                if crc & 0x80:
+                    crc = (crc << 1) ^ 0x31 #  0x31 is the Seed for SGP40's CRC polynomial
+                else:
+                    crc = crc << 1
+        return crc & 0xFF # Returns only bottom 8 bits
+
+    
+
+
+    def _temp_c_to_ticks(self, temperature):
+        '''
+        tests : From SGP40 Datasheet Table 10
+        temp (C)    | Hex Code (Check Sum/CRC Hex Code)
+            25      | 0x6666   (CRC 0x93)
+            -45     | 0x0000   (CRC 0x81)
+            130     | 0xFFFF   (CRC 0xAC)
+        
+        '''
+        rt = int(((temperature + 45) * 65535) / 175) & 0xFFFF
+        least_sig_temp_ticks = rt & 0xFF
+        most_sig_temp_ticks = (rt >> 8) & 0xFF
+
+        return [most_sig_temp_ticks, least_sig_temp_ticks]
+
+    def _relative_humidity_to_ticks(self, humidity):
+        '''
+        tests : From SGP40 Datasheet Table 10
+        Humidity (%) | Hex Code (Check Sum/CRC Hex Code)
+            50       | 0x8000   (CRC 0xA2)
+            0        | 0x0000   (CRC 0x81)
+            100      | 0xFFFF   (CRC 0xAC)
+        
+        '''
+        rh =  int((humidity * 65535) / 100 + 0.5) & 0xFFFF
+        least_sig_rhumidity_ticks = rh & 0xFF
+        most_sig_rhumidity_ticks = (rh >> 8) & 0xFF
+
+        return [most_sig_rhumidity_ticks, least_sig_rhumidity_ticks]
+
+    def measure_raw_humidity_compensation(self, t=25, h=50):
+        '''
+        The raw gas value adjusted for the current temperature (c) and humidity (%)
+        '''
+        # recycle a single buffer
+        _compensated_read_cmd = [0x26, 0x0F]
+        humidity_ticks = self._relative_humidity_to_ticks(h)
+        humidity_ticks.append(self._generate_crc(humidity_ticks))
+        temp_ticks = self._temp_c_to_ticks(t)
+        temp_ticks.append(self._generate_crc(temp_ticks))
+        _cmd = _compensated_read_cmd + humidity_ticks + temp_ticks
+        self._command_buffer = bytearray(_cmd)
+        print(self._command_buffer)
+        read_value = self._read_word_from_command(delay_ms=250)
+        self._command_buffer = bytearray(2)
+        return read_value[0]
+
+
+
+    def measureVocIndex(self, t, h):
+        '''
+
+
+
+
+        Notes
+        -----
+        Based on figure one, 
+        https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/9_Gas_Sensors/Datasheets/Sensirion_Gas_Sensors_Datasheet_SGP40.pdf
+        the SGP40 handles the air quality signal processing on chip
+        and requires temperature and humidity to be sent to it over the i2c interface
+
+
+        Step one:
+            Take temp t, split it into two bytes using Ticks equation on table 10
+
+
+        '''
+        # Attempting to keep api close to the c library for ease of use
+        pass
+        
