@@ -37,7 +37,7 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_SGP40.git"
 
 _WORD_LEN = 2
 # no point in generating this each time
-_READ_CMD = [0x26, 0x0F, 0x80, 0x00, 0xA2, 0x66, 0x66, 0x93] # Generated from temp 25c, humidity 49.999%
+_READ_CMD = [0x26, 0x0F, 0x80, 0x00, 0xA2, 0x66, 0x66, 0x93] # Generated from temp 25c, humidity 50%
 
 
 class SGP40:
@@ -78,6 +78,7 @@ class SGP40:
     def __init__(self, i2c, address=0x59):
         self.i2c_device = i2c_device.I2CDevice(i2c, address)
         self._command_buffer = bytearray(2)
+        self._measure_command = _READ_CMD
 
         self.initialize()
 
@@ -127,7 +128,7 @@ class SGP40:
     def raw(self):
         """The raw gas value"""
         # recycle a single buffer
-        self._command_buffer = bytearray(_READ_CMD)
+        self._command_buffer = self._measure_command
         read_value = self._read_word_from_command(delay_ms=250)
         self._command_buffer = bytearray(2)
         return read_value[0]
@@ -222,44 +223,21 @@ class SGP40:
 
         return [most_sig_rhumidity_ticks, least_sig_rhumidity_ticks]
 
-    def measure_raw_humidity_compensation(self, t=25, h=50):
+    def measure_raw(self, temperature=25, relative_humidity=50):
         '''
         The raw gas value adjusted for the current temperature (c) and humidity (%)
         '''
         # recycle a single buffer
         _compensated_read_cmd = [0x26, 0x0F]
-        humidity_ticks = self._relative_humidity_to_ticks(h)
+        humidity_ticks = self._relative_humidity_to_ticks(relative_humidity)
         humidity_ticks.append(self._generate_crc(humidity_ticks))
-        temp_ticks = self._temp_c_to_ticks(t)
+        temp_ticks = self._temp_c_to_ticks(temperature)
         temp_ticks.append(self._generate_crc(temp_ticks))
         _cmd = _compensated_read_cmd + humidity_ticks + temp_ticks
-        self._command_buffer = bytearray(_cmd)
-        print(self._command_buffer)
-        read_value = self._read_word_from_command(delay_ms=250)
-        self._command_buffer = bytearray(2)
-        return read_value[0]
+        self._measure_command = bytearray(_cmd)
+        # print(self._command_buffer)
+        # read_value = self._read_word_from_command(delay_ms=250)
+        # self._command_buffer = bytearray(2)
+        return self.raw
 
 
-
-    def measureVocIndex(self, t, h):
-        '''
-
-
-
-
-        Notes
-        -----
-        Based on figure one, 
-        https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/9_Gas_Sensors/Datasheets/Sensirion_Gas_Sensors_Datasheet_SGP40.pdf
-        the SGP40 handles the air quality signal processing on chip
-        and requires temperature and humidity to be sent to it over the i2c interface
-
-
-        Step one:
-            Take temp t, split it into two bytes using Ticks equation on table 10
-
-
-        '''
-        # Attempting to keep api close to the c library for ease of use
-        pass
-        
