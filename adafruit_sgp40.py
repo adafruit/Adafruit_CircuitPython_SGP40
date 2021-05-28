@@ -37,7 +37,16 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_SGP40.git"
 
 _WORD_LEN = 2
 # no point in generating this each time
-_READ_CMD = [0x26, 0x0F, 0x80, 0x00, 0xA2, 0x66, 0x66, 0x93] # Generated from temp 25c, humidity 50%
+_READ_CMD = [
+    0x26,
+    0x0F,
+    0x80,
+    0x00,
+    0xA2,
+    0x66,
+    0x66,
+    0x93,
+]  # Generated from temp 25c, humidity 50%
 
 
 class SGP40:
@@ -81,7 +90,6 @@ class SGP40:
         self._measure_command = _READ_CMD
 
         self.initialize()
-
 
     def initialize(self):
         """Reset the sensor to it's initial unconfigured state and configure it with sensible
@@ -174,59 +182,45 @@ class SGP40:
 
         return readdata_buffer
 
-
     def _check_crc8(self, crc_buffer, crc_value):
         return crc_value == self._generate_crc(crc_buffer)
 
     @staticmethod
-    def _generate_crc(crc_buffer):
-        crc = 0xFF
-        for byte in crc_buffer:
-            crc ^= byte
-            for _ in range(8):
-                if crc & 0x80:
-                    crc = (crc << 1) ^ 0x31 #  0x31 is the Seed for SGP40's CRC polynomial
-                else:
-                    crc = crc << 1
-        return crc & 0xFF # Returns only bottom 8 bits
-
-    
-
-
-    def _temp_c_to_ticks(self, temperature):
-        '''
+    def _temp_c_to_ticks(temperature):
+        """
         tests : From SGP40 Datasheet Table 10
         temp (C)    | Hex Code (Check Sum/CRC Hex Code)
             25      | 0x6666   (CRC 0x93)
             -45     | 0x0000   (CRC 0x81)
             130     | 0xFFFF   (CRC 0xAC)
-        
-        '''
-        rt = int(((temperature + 45) * 65535) / 175) & 0xFFFF
-        least_sig_temp_ticks = rt & 0xFF
-        most_sig_temp_ticks = (rt >> 8) & 0xFF
+
+        """
+        temp_ticks = int(((temperature + 45) * 65535) / 175) & 0xFFFF
+        least_sig_temp_ticks = temp_ticks & 0xFF
+        most_sig_temp_ticks = (temp_ticks >> 8) & 0xFF
 
         return [most_sig_temp_ticks, least_sig_temp_ticks]
 
-    def _relative_humidity_to_ticks(self, humidity):
-        '''
+    @staticmethod
+    def _relative_humidity_to_ticks(humidity):
+        """
         tests : From SGP40 Datasheet Table 10
         Humidity (%) | Hex Code (Check Sum/CRC Hex Code)
             50       | 0x8000   (CRC 0xA2)
             0        | 0x0000   (CRC 0x81)
             100      | 0xFFFF   (CRC 0xAC)
-        
-        '''
-        rh =  int((humidity * 65535) / 100 + 0.5) & 0xFFFF
-        least_sig_rhumidity_ticks = rh & 0xFF
-        most_sig_rhumidity_ticks = (rh >> 8) & 0xFF
+
+        """
+        humidity_ticks = int((humidity * 65535) / 100 + 0.5) & 0xFFFF
+        least_sig_rhumidity_ticks = humidity_ticks & 0xFF
+        most_sig_rhumidity_ticks = (humidity_ticks >> 8) & 0xFF
 
         return [most_sig_rhumidity_ticks, least_sig_rhumidity_ticks]
 
     def measure_raw(self, temperature=25, relative_humidity=50):
-        '''
+        """
         The raw gas value adjusted for the current temperature (c) and humidity (%)
-        '''
+        """
         # recycle a single buffer
         _compensated_read_cmd = [0x26, 0x0F]
         humidity_ticks = self._relative_humidity_to_ticks(relative_humidity)
@@ -240,4 +234,16 @@ class SGP40:
         # self._command_buffer = bytearray(2)
         return self.raw
 
-
+    @staticmethod
+    def _generate_crc(crc_buffer):
+        crc = 0xFF
+        for byte in crc_buffer:
+            crc ^= byte
+            for _ in range(8):
+                if crc & 0x80:
+                    crc = (
+                        crc << 1
+                    ) ^ 0x31  #  0x31 is the Seed for SGP40's CRC polynomial
+                else:
+                    crc = crc << 1
+        return crc & 0xFF  # Returns only bottom 8 bits
