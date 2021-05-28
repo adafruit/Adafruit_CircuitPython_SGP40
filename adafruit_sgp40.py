@@ -173,18 +173,11 @@ class SGP40:
 
         return readdata_buffer
 
-    @staticmethod
-    def _check_crc8(crc_buffer, crc_value):
-        crc = 0xFF
-        for byte in crc_buffer:
-            crc ^= byte
-            for _ in range(8):
-                if crc & 0x80:
-                    crc = (crc << 1) ^ 0x31
-                else:
-                    crc = crc << 1
-        return crc_value == (crc & 0xFF)  # check against the bottom 8 bits
 
+    def _check_crc8(self, crc_buffer, crc_value):
+        return crc_value == self._generate_crc(crc_buffer)
+
+    @staticmethod
     def _generate_crc(crc_buffer):
         crc = 0xFF
         for byte in crc_buffer:
