@@ -83,7 +83,7 @@ class SGP40:
 
         Now you have access to the raw gas value using the :attr:`raw` attribute.
         And with a temperature and humidity value, you can access the class function
-        `sgp.measure_raw` for a humidity compensated raw reading
+        :meth:`measure_raw` for a humidity compensated raw reading
 
         .. code-block:: python
 
