@@ -64,7 +64,6 @@ Usage Example
 
     import time
     import board
-    import busio
     import adafruit_sgp40
 
     i2c = board.I2C()  # uses board.SCL and board.SDA
