@@ -91,7 +91,8 @@ class SGP40:
             # Lets quickly grab the humidity and temperature
             # temperature = bme280.temperature
             # humidity = bme280.relative_humidity
-            # compensated_raw_gas = sgp.measure_raw(temperature=temperature, relative_humidity=humidity)
+            # compensated_raw_gas = sgp.measure_raw(temperature=temperature,
+            # relative_humidity=humidity)
             # temperature = temperature, relative_humidity = humidity)
 
 
@@ -108,6 +109,11 @@ class SGP40:
 
         Prolonged exposures outside of these ranges may reduce sensor performance, and
         the sensor must not be exposed towards condensing conditions at any time.
+
+        For more information see:
+        https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/9_Gas_Sensors/Datasheets/Sensirion_Gas_Sensors_Datasheet_SGP40.pdf
+        and
+        https://learn.adafruit.com/adafruit-sgp40
 
     """
 
@@ -160,7 +166,7 @@ class SGP40:
         sleep(1)
 
     @staticmethod
-    def _temp_c_to_ticks(temperature):
+    def _celsius_to_ticks(temperature):
         """
         Converts Temperature in Celsius to 'ticks' which are an input parameter
         the sgp40 can use
@@ -217,7 +223,7 @@ class SGP40:
         _compensated_read_cmd = [0x26, 0x0F]
         humidity_ticks = self._relative_humidity_to_ticks(relative_humidity)
         humidity_ticks.append(self._generate_crc(humidity_ticks))
-        temp_ticks = self._temp_c_to_ticks(temperature)
+        temp_ticks = self._celsius_to_ticks(temperature)
         temp_ticks.append(self._generate_crc(temp_ticks))
         _cmd = _compensated_read_cmd + humidity_ticks + temp_ticks
         self._measure_command = bytearray(_cmd)
