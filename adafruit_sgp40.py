@@ -72,7 +72,7 @@ class SGP40:
             # If you have a temperature sensor, like the bme280, import that here as well
             # import adafruit_bme280
 
-        Once this is done you can define your `busio.I2C` object and define your sensor object
+        Once this is done you can define your `board.I2C` object and define your sensor object
 
         .. code-block:: python
 
