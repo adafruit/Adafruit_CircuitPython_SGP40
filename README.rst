@@ -67,7 +67,7 @@ Usage Example
     import busio
     import adafruit_sgp40
 
-    i2c = busio.I2C(board.SCL, board.SDA)
+    i2c = board.I2C()  # uses board.SCL and board.SDA
     sgp = adafruit_sgp40(i2c)
 
     while True:
