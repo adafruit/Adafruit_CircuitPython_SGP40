@@ -217,6 +217,12 @@ class SGP40:
         A humidity and temperature compensated raw gas value which helps
         address fluctuations in readings due to changing humidity.
 
+
+        :param float temperature: The temperature in degrees Celsius, defaults
+                                     to :const:`25`
+        :param float relative_humidity: The relative humidity in percentage, defaults
+                                     to :const:`50`
+
         The raw gas value adjusted for the current temperature (c) and humidity (%)
         """
         # recycle a single buffer
