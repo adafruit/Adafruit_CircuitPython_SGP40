@@ -103,7 +103,7 @@ class SGP40:
 
         Humidity compensation is further optimized for a subset of the temperature
         and relative humidity readings. See Figure 3 of the Sensirion datasheet for
-        the SGP40. At 25 deg C, the optimal range for relative humidity is 8% to 90%.
+        the SGP40. At 25 degrees Celsius, the optimal range for relative humidity is 8% to 90%.
         At 50% relative humidity, the optimal range for temperature is -7 to 42 deg C.
 
         Prolonged exposures outside of these ranges may reduce sensor performance, and
