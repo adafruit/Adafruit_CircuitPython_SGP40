@@ -27,8 +27,6 @@ Implementation Notes
   https://github.com/adafruit/circuitpython/releases
 
 
- * Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
-
 """
 from time import sleep
 from struct import unpack_from
@@ -55,7 +53,6 @@ class SGP40:
     """
     Class to use the SGP40 Air Quality Sensor Breakout
 
-    :param ~busio.I2C i2c: The I2C bus the SGP40 is connected to.
     :param int address: The I2C address of the device. Defaults to :const:`0x59`
 
 
@@ -66,7 +63,6 @@ class SGP40:
 
         .. code-block:: python
 
-            import busio
             import board
             import adafruit_sgp40
             # If you have a temperature sensor, like the bme280, import that here as well
