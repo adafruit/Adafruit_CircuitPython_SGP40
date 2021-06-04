@@ -3,13 +3,12 @@
 # SPDX-License-Identifier: Unlicense
 import time
 import board
-import busio
 import adafruit_sgp40
 
 # If you have a temperature sensor, like the bme280, import that here as well
 # import adafruit_bme280
 
-i2c = busio.I2C(board.SCL, board.SDA)
+i2c = board.I2C()  # uses board.SCL and board.SDA
 sgp = adafruit_sgp40.SGP40(i2c)
 # And if you have a temp/humidity sensor, define the sensor here as well
 # bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
