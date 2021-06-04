@@ -81,7 +81,6 @@ For humidity compensated raw gas readings, we'll need a secondary sensor such as
 
     import time
     import board
-    import busio
     import adafruit_sgp40
     import adafruit_bme280
 
