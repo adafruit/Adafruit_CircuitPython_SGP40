@@ -91,7 +91,7 @@ class SGP40:
             # Lets quickly grab the humidity and temperature
             # temperature = bme280.temperature
             # humidity = bme280.relative_humidity
-            # compensated_raw_gas = sgp.measure_raw(
+            # compensated_raw_gas = sgp.measure_raw(temperature=temperature, relative_humidity=humidity)
             # temperature = temperature, relative_humidity = humidity)
 
 
