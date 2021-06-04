@@ -97,7 +97,7 @@ class SGP40:
 
 
     .. note::
-        The operational range of temperatures for the SGP40 is -10 to 50 degrees C
+        The operational range of temperatures for the SGP40 is -10 to 50 degrees Celsius
         and the operational range of relative humidity for the SGP40 is 0 to 90 %
         (assuming that humidity is non-condensing).
 
