@@ -27,6 +27,8 @@ Implementation Notes
   https://github.com/adafruit/circuitpython/releases
 
 
+ * Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
+
 """
 from time import sleep
 from struct import unpack_from
