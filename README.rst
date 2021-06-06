@@ -64,15 +64,37 @@ Usage Example
 
     import time
     import board
-    import busio
+    import adafruit_sgp40
 
-    i2c = busio.I2C(board.SCL, board.SDA)
+    i2c = board.I2C()  # uses board.SCL and board.SDA
     sgp = adafruit_sgp40(i2c)
 
     while True:
         print("Measurement: ", sgp.raw)
         print("")
         sleep(1)
+
+For humidity compensated raw gas readings, we'll need a secondary sensor such as the bme280
+
+.. code-block:: python3
+
+    import time
+    import board
+    import adafruit_sgp40
+    import adafruit_bme280
+
+    i2c = board.I2C()  # uses board.SCL and board.SDA
+    sgp = adafruit_sgp40.SGP40(i2c)
+    bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
+
+    while True:
+        temperature = bme280.temperature
+        humidity = bme280.relative_humidity
+        compensated_raw_gas = sgp.measure_raw(temperature = temperature, relative_humidity = humidity)
+        print(compensated_raw_gas)
+        print("")
+        time.sleep(1)
+
 
 
 Contributing
