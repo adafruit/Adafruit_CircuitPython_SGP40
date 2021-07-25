@@ -1,23 +1,11 @@
 Introduction
 ============
 
-.. image:: https://readthedocs.org/projects/adafruit-circuitpython-sgp40/badge/?version=latest
-    :target: https://circuitpython.readthedocs.io/projects/sgp40/en/latest/
-    :alt: Documentation Status
+CircuitPython library for the Adafruit SGP40 Air Quality Sensor / VOC Index Sensor Breakouts. 
+This fork adds DFRobots VOC Index algorithm to adafruits CircuitPython library.
 
-.. image:: https://img.shields.io/discord/327254708534116352.svg
-    :target: https://adafru.it/discord
-    :alt: Discord
-
-.. image:: https://github.com/adafruit/Adafruit_CircuitPython_SGP40/workflows/Build%20CI/badge.svg
-    :target: https://github.com/adafruit/Adafruit_CircuitPython_SGP40/actions
-    :alt: Build Status
-
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/psf/black
-    :alt: Code Style: Black
-
-CircuitPython library for the Adafruit SGP40 Air Quality Sensor / VOC Index Sensor Breakouts
+`Original Library <https://github.com/adafruit/Adafruit_CircuitPython_SGP40>`_
+`DFRobot Algorithm <https://github.com/DFRobot/DFRobot_SGP40>`_
 
 
 Dependencies
@@ -60,21 +48,7 @@ To install in a virtual environment in your current project:
 Usage Example
 =============
 
-.. code-block:: python3
-
-    import time
-    import board
-    import adafruit_sgp40
-
-    i2c = board.I2C()  # uses board.SCL and board.SDA
-    sgp = adafruit_sgp40(i2c)
-
-    while True:
-        print("Measurement: ", sgp.raw)
-        print("")
-        sleep(1)
-
-For humidity compensated raw gas readings, we'll need a secondary sensor such as the bme280
+For humidity compensated raw gas and voc index readings, we'll need a secondary sensor such as the bme280
 
 .. code-block:: python3
 
@@ -90,12 +64,20 @@ For humidity compensated raw gas readings, we'll need a secondary sensor such as
     while True:
         temperature = bme280.temperature
         humidity = bme280.relative_humidity
-        compensated_raw_gas = sgp.measure_raw(temperature = temperature, relative_humidity = humidity)
+
+        # Compensated raw gas reading
+        compensated_raw_gas = sgp.measure_index(temperature = temperature, relative_humidity = humidity)
+
+        # Compensated voc index reading
+        voc_index = sgp.measure_raw(temperature = temperature, relative_humidity = humidity)
+
         print(compensated_raw_gas)
+        print(voc_index)
         print("")
         time.sleep(1)
 
 
+It may take several minutes for the VOC index to start changing as it calibrates the baseline readings.
 
 Contributing
 ============

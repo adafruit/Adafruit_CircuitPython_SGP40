@@ -32,6 +32,7 @@ Implementation Notes
 from time import sleep
 from struct import unpack_from
 import adafruit_bus_device.i2c_device as i2c_device
+from voc_index_algorithm import DFRobot_VOCAlgorithm
 
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_SGP40.git"
@@ -118,6 +119,7 @@ class SGP40:
         self.i2c_device = i2c_device.I2CDevice(i2c, address)
         self._command_buffer = bytearray(2)
         self._measure_command = _READ_CMD
+        self._voc_algorithm = DFRobot_VOCAlgorithm()
 
         self.initialize()
 
@@ -138,9 +140,10 @@ class SGP40:
         featureset = self._read_word_from_command()
         if featureset[0] != 0x3220:
 
-            raise RuntimeError("Feature set does not match: %s" % hex(featureset[0]))
+            raise RuntimeError("Feature set does not match: %s" %
+                               hex(featureset[0]))
 
-        # VocAlgorithm_init(&voc_algorithm_params)
+        self._voc_algorithm.vocalgorithm_init()
 
         # Self Test
         self._command_buffer[0] = 0x28
@@ -232,6 +235,26 @@ class SGP40:
         self._measure_command = bytearray(_cmd)
         return self.raw
 
+    def measure_index(self, temperature=25, relative_humidity=50):
+        """ Measure VOC index after humidity compensation
+        :param float temperature: The temperature in degrees Celsius, defaults
+                                     to :const:`25`
+        :param float relative_humidity: The relative humidity in percentage, defaults
+                                     to :const:`50`
+        :note  VOC index can indicate the quality of the air directly. The larger the value, the worse the air quality.
+        :note    0-100,no need to ventilate, purify
+        :note    100-200,no need to ventilate, purify
+        :note    200-400,ventilate, purify
+        :note    00-500,ventilate, purify intensely
+        :return int The VOC index measured, ranged from 0 to 500
+        """
+        raw = self.measure_raw(temperature, relative_humidity)
+        if raw < 0:
+            return -1
+        else:
+            vocIndex = self._voc_algorithm.vocalgorithm_process(raw)
+            return vocIndex
+
     def _read_word_from_command(
         self,
         delay_ms=10,
@@ -264,9 +287,9 @@ class SGP40:
             i2c.readinto(replybuffer, end=replylen)
 
         for i in range(0, replylen, 3):
-            if not self._check_crc8(replybuffer[i : i + 2], replybuffer[i + 2]):
+            if not self._check_crc8(replybuffer[i: i + 2], replybuffer[i + 2]):
                 raise RuntimeError("CRC check failed while reading data")
-            readdata_buffer.append(unpack_from(">H", replybuffer[i : i + 2])[0])
+            readdata_buffer.append(unpack_from(">H", replybuffer[i: i + 2])[0])
 
         return readdata_buffer
 
@@ -294,7 +317,7 @@ class SGP40:
                 if crc & 0x80:
                     crc = (
                         crc << 1
-                    ) ^ 0x31  #  0x31 is the Seed for SGP40's CRC polynomial
+                    ) ^ 0x31  # 0x31 is the Seed for SGP40's CRC polynomial
                 else:
                     crc = crc << 1
         return crc & 0xFF  # Returns only bottom 8 bits
