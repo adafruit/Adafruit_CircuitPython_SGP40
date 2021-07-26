@@ -1,11 +1,12 @@
 Introduction
 ============
 
-CircuitPython library for the Adafruit SGP40 Air Quality Sensor / VOC Index Sensor Breakouts. 
-This fork adds DFRobots VOC Index algorithm to adafruits CircuitPython library.
+This fork adds DFRobots VOC Index algorithm to adafruits CircuitPython SGP40 library.
 
-`Original Library <https://github.com/adafruit/Adafruit_CircuitPython_SGP40>`_
-`DFRobot Algorithm <https://github.com/DFRobot/DFRobot_SGP40>`_
+CircuitPython library for the Adafruit SGP40 Air Quality Sensor / VOC Index Sensor Breakouts. 
+
+* `Original Library <https://github.com/adafruit/Adafruit_CircuitPython_SGP40>`_
+* `DFRobot Algorithm <https://github.com/DFRobot/DFRobot_SGP40>`_
 
 
 Dependencies
@@ -15,6 +16,7 @@ This driver depends on:
 * `Adafruit CircuitPython <https://github.com/adafruit/circuitpython>`_
 * `Bus Device <https://github.com/adafruit/Adafruit_CircuitPython_BusDevice>`_
 * `Register <https://github.com/adafruit/Adafruit_CircuitPython_Register>`_
+
 
 Please ensure all dependencies are available on the CircuitPython filesystem.
 This is easily achieved by downloading
