@@ -37,19 +37,10 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_SGP40.git"
 
 _WORD_LEN = 2
+
 # no point in generating this each time
-_READ_CMD = bytes(
-    [
-        0x26,
-        0x0F,
-        0x80,
-        0x00,
-        0xA2,
-        0x66,
-        0x66,
-        0x93,
-    ]
-)  # Generated from temp 25c, humidity 50%
+# Generated from temp 25c, humidity 50%
+_READ_CMD = b"\x26\x0F\x80\x00\xA2\x66\x66\x93"
 
 
 class SGP40:
