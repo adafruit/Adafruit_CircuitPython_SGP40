@@ -38,16 +38,18 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_SGP40.git"
 
 _WORD_LEN = 2
 # no point in generating this each time
-_READ_CMD = [
-    0x26,
-    0x0F,
-    0x80,
-    0x00,
-    0xA2,
-    0x66,
-    0x66,
-    0x93,
-]  # Generated from temp 25c, humidity 50%
+_READ_CMD = bytes(
+    [
+        0x26,
+        0x0F,
+        0x80,
+        0x00,
+        0xA2,
+        0x66,
+        0x66,
+        0x93,
+    ]
+)  # Generated from temp 25c, humidity 50%
 
 
 class SGP40:
