@@ -150,8 +150,9 @@ class SGP40:
         self._command_buffer[1] = 0x06
         try:
             self._read_word_from_command(delay_ms=50)
-        except OSError:
+        except (OSError, RuntimeError):
             # Got expected OSError from reset
+            # or RuntimeError on some Blinka setups
             pass
         sleep(1)
 
