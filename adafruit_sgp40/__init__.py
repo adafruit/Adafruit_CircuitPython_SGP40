@@ -133,8 +133,7 @@ class SGP40:
         featureset = self._read_word_from_command()
         if featureset[0] != 0x3220:
 
-            raise RuntimeError("Feature set does not match: %s" %
-                               hex(featureset[0]))
+            raise RuntimeError("Feature set does not match: %s" % hex(featureset[0]))
 
         self._voc_algorithm.vocalgorithm_init()
 
@@ -281,9 +280,9 @@ class SGP40:
             i2c.readinto(replybuffer, end=replylen)
 
         for i in range(0, replylen, 3):
-            if not self._check_crc8(replybuffer[i: i + 2], replybuffer[i + 2]):
+            if not self._check_crc8(replybuffer[i : i + 2], replybuffer[i + 2]):
                 raise RuntimeError("CRC check failed while reading data")
-            readdata_buffer.append(unpack_from(">H", replybuffer[i: i + 2])[0])
+            readdata_buffer.append(unpack_from(">H", replybuffer[i : i + 2])[0])
 
         return readdata_buffer
 

@@ -25,8 +25,7 @@ while True:
     # For Compensated voc index readings
     # It may take several minutes for the VOC index to start changing
     # as it calibrates the baseline readings.
-    voc_index = sgp.measure_raw(
-        temperature=temperature, relative_humidity=humidity)
+    voc_index = sgp.measure_raw(temperature=temperature, relative_humidity=humidity)
 
     print(compensated_raw_gas)
     print(voc_index)
