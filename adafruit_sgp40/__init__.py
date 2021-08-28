@@ -31,7 +31,7 @@ Implementation Notes
 """
 from time import sleep
 from struct import unpack_from
-import adafruit_bus_device.i2c_device as i2c_device
+from adafruit_bus_device import i2c_device
 from adafruit_sgp40.voc_algorithm import VOCAlgorithm
 
 __version__ = "0.0.0-auto.0"
@@ -230,12 +230,13 @@ class SGP40:
         return self.raw
 
     def measure_index(self, temperature=25, relative_humidity=50):
-        """ Measure VOC index after humidity compensation
+        """Measure VOC index after humidity compensation
         :param float temperature: The temperature in degrees Celsius, defaults
                                      to :const:`25`
         :param float relative_humidity: The relative humidity in percentage, defaults
                                      to :const:`50`
-        :note  VOC index can indicate the quality of the air directly. The larger the value, the worse the air quality.
+        :note  VOC index can indicate the quality of the air directly.
+        The larger the value, the worse the air quality.
         :note    0-100,no need to ventilate, purify
         :note    100-200,no need to ventilate, purify
         :note    200-400,ventilate, purify
@@ -245,9 +246,8 @@ class SGP40:
         raw = self.measure_raw(temperature, relative_humidity)
         if raw < 0:
             return -1
-        else:
-            vocIndex = self._voc_algorithm.vocalgorithm_process(raw)
-            return vocIndex
+        voc_index = self._voc_algorithm.vocalgorithm_process(raw)
+        return voc_index
 
     def _read_word_from_command(
         self,
