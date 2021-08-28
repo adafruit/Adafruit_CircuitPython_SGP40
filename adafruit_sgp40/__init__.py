@@ -230,16 +230,14 @@ class SGP40:
 
     def measure_index(self, temperature=25, relative_humidity=50):
         """Measure VOC index after humidity compensation
-        :param float temperature: The temperature in degrees Celsius, defaults
-                                     to :const:`25`
-        :param float relative_humidity: The relative humidity in percentage, defaults
-                                     to :const:`50`
+        :param float temperature: The temperature in degrees Celsius, defaults to :const:`25`
+        :param float relative_humidity: The relative humidity in percentage, defaults to :const:`50`
         :note  VOC index can indicate the quality of the air directly.
         The larger the value, the worse the air quality.
-        :note    0-100,no need to ventilate, purify
-        :note    100-200,no need to ventilate, purify
-        :note    200-400,ventilate, purify
-        :note    00-500,ventilate, purify intensely
+        :note 0-100,no need to ventilate, purify
+        :note 100-200,no need to ventilate, purify
+        :note 200-400,ventilate, purify
+        :note 00-500,ventilate, purify intensely
         :return int The VOC index measured, ranged from 0 to 500
         """
         raw = self.measure_raw(temperature, relative_humidity)
