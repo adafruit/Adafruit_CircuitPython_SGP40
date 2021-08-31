@@ -22,6 +22,8 @@ while True:
         temperature=temperature, relative_humidity=humidity
     )
 
+    time.sleep(1)
+
     # For Compensated voc index readings
     # It may take several minutes for the VOC index to start changing
     # as it calibrates the baseline readings.

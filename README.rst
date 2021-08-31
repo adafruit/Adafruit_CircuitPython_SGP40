@@ -92,7 +92,9 @@ For humidity compensated raw gas and voc index readings, we'll need a secondary 
         humidity = bme280.relative_humidity
 
         # For compensated raw gas readings
-        compensated_raw_gas = sgp.raw(temperature = temperature, relative_humidity = humidity)
+        compensated_raw_gas = sgp.measure_raw(temperature = temperature, relative_humidity = humidity)
+
+        time.sleep(1)
 
         # For Compensated voc index readings
         voc_index = sgp.measure_index(temperature = temperature, relative_humidity = humidity)
