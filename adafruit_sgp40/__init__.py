@@ -32,7 +32,6 @@ Implementation Notes
 from time import sleep
 from struct import unpack_from
 from adafruit_bus_device import i2c_device
-from adafruit_sgp40.voc_algorithm import VOCAlgorithm
 
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_SGP40.git"
@@ -112,7 +111,7 @@ class SGP40:
         self.i2c_device = i2c_device.I2CDevice(i2c, address)
         self._command_buffer = bytearray(2)
         self._measure_command = _READ_CMD
-        self._voc_algorithm = VOCAlgorithm()
+        self._voc_algorithm = None
 
         self.initialize()
 
@@ -134,8 +133,6 @@ class SGP40:
         if featureset[0] != 0x3220:
 
             raise RuntimeError("Feature set does not match: %s" % hex(featureset[0]))
-
-        self._voc_algorithm.vocalgorithm_init()
 
         # Self Test
         self._command_buffer[0] = 0x28
@@ -234,12 +231,22 @@ class SGP40:
         :param float relative_humidity: The relative humidity in percentage, defaults to :const:`50`
         :note  VOC index can indicate the quality of the air directly.
         The larger the value, the worse the air quality.
-        :note 0-100,no need to ventilate, purify
-        :note 100-200,no need to ventilate, purify
-        :note 200-400,ventilate, purify
-        :note 00-500,ventilate, purify intensely
+        :note 0-100, no need to ventilate, purify
+        :note 100-200, no need to ventilate, purify
+        :note 200-400, ventilate, purify
+        :note 00-500, ventilate, purify intensely
         :return int The VOC index measured, ranged from 0 to 500
         """
+        # import/setup algorithm only on use of index
+        # pylint: disable=import-outside-toplevel
+        from adafruit_sgp40.voc_algorithm import (
+            VOCAlgorithm,
+        )
+
+        if self._voc_algorithm is None:
+            self._voc_algorithm = VOCAlgorithm()
+            self._voc_algorithm.vocalgorithm_init()
+
         raw = self.measure_raw(temperature, relative_humidity)
         if raw < 0:
             return -1
