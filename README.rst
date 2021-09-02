@@ -74,7 +74,7 @@ Usage Example
         print("")
         sleep(1)
 
-For humidity compensated raw gas readings, we'll need a secondary sensor such as the bme280
+For humidity compensated raw gas and voc index readings, we'll need a secondary sensor such as the bme280
 
 .. code-block:: python3
 
@@ -90,12 +90,22 @@ For humidity compensated raw gas readings, we'll need a secondary sensor such as
     while True:
         temperature = bme280.temperature
         humidity = bme280.relative_humidity
+
+        # For compensated raw gas readings
         compensated_raw_gas = sgp.measure_raw(temperature = temperature, relative_humidity = humidity)
+
+        time.sleep(1)
+
+        # For Compensated voc index readings
+        voc_index = sgp.measure_index(temperature = temperature, relative_humidity = humidity)
+
         print(compensated_raw_gas)
+        print(voc_index)
         print("")
         time.sleep(1)
 
 
+It may take several minutes for the VOC index to start changing as it calibrates the baseline readings.
 
 Contributing
 ============
