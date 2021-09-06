@@ -92,20 +92,24 @@ For humidity compensated raw gas and voc index readings, we'll need a secondary 
         humidity = bme280.relative_humidity
 
         # For compensated raw gas readings
-        compensated_raw_gas = sgp.measure_raw(temperature = temperature, relative_humidity = humidity)
-
-        time.sleep(1)
+        """
+        compensated_raw_gas = sgp.measure_raw(
+            temperature=temperature, relative_humidity=humidity
+        )
+        print("Raw Data:", compensated_raw_gas)
+        """
 
         # For Compensated voc index readings
-        voc_index = sgp.measure_index(temperature = temperature, relative_humidity = humidity)
+        voc_index = sgp.measure_index(
+        temperature=temperature, relative_humidity=humidity)
 
-        print(compensated_raw_gas)
-        print(voc_index)
+        print("VOC Index:", voc_index)
         print("")
         time.sleep(1)
 
-
 It may take several minutes for the VOC index to start changing as it calibrates the baseline readings.
+The voc algorithm expects a 1 hertz sampling rate. Run `measure_index()` once per second.
+
 
 Contributing
 ============

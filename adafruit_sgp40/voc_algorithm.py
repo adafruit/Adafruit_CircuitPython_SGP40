@@ -11,6 +11,7 @@ Class and algorithm to convert Sensirion sgp40 raw reading to indexed voc readin
 * Author(s): yangfeng
 
 """
+from micropython import const
 
 _VOCALGORITHM_SAMPLING_INTERVAL = const(1)
 _VOCALGORITHM_INITIAL_BLACKOUT = const(45)
