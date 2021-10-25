@@ -111,6 +111,11 @@ It may take several minutes for the VOC index to start changing as it calibrates
 The voc algorithm expects a 1 hertz sampling rate. Run `measure_index()` once per second.
 
 
+Documentation
+=============
+
+API documentation for this library can be found on `Read the Docs <https://circuitpython.readthedocs.io/projects/sgp40/en/latest/>`_.
+
 Contributing
 ============
 
