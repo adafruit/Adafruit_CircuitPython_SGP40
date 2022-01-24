@@ -2,7 +2,7 @@ Introduction
 ============
 
 .. image:: https://readthedocs.org/projects/adafruit-circuitpython-sgp40/badge/?version=latest
-    :target: https://circuitpython.readthedocs.io/projects/sgp40/en/latest/
+    :target: https://docs.circuitpython.org/projects/sgp40/en/latest/
     :alt: Documentation Status
 
 .. image:: https://img.shields.io/discord/327254708534116352.svg
@@ -114,7 +114,7 @@ The voc algorithm expects a 1 hertz sampling rate. Run `measure_index()` once pe
 Documentation
 =============
 
-API documentation for this library can be found on `Read the Docs <https://circuitpython.readthedocs.io/projects/sgp40/en/latest/>`_.
+API documentation for this library can be found on `Read the Docs <https://docs.circuitpython.org/projects/sgp40/en/latest/>`_.
 
 Contributing
 ============
