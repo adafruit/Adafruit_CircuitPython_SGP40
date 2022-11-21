@@ -8,6 +8,7 @@ import adafruit_sgp40
 
 # Boards i2c bus
 i2c = board.I2C()  # uses board.SCL and board.SDA
+# i2c = board.STEMMA_I2C()  # For using the built-in STEMMA QT connector on a microcontroller
 sgp = adafruit_sgp40.SGP40(i2c)
 
 # Humidity sensor for compensated Readings

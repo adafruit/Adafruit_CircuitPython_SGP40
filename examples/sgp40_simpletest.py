@@ -9,6 +9,7 @@ import adafruit_sgp40
 # import adafruit_bme280
 
 i2c = board.I2C()  # uses board.SCL and board.SDA
+# i2c = board.STEMMA_I2C()  # For using the built-in STEMMA QT connector on a microcontroller
 sgp = adafruit_sgp40.SGP40(i2c)
 # And if you have a temp/humidity sensor, define the sensor here as well
 # bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
