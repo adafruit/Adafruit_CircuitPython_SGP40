@@ -265,7 +265,7 @@ class SGP40:
     def _read_word_from_command(
         self,
         delay_ms: int = 10,
-        readlen: int = 1,
+        readlen: Optional[int] = 1,
     ) -> Optional[List[int]]:
         """_read_word_from_command - send a given command code and read the result back
 
