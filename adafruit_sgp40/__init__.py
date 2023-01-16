@@ -33,6 +33,13 @@ from time import sleep
 from struct import unpack_from
 from adafruit_bus_device import i2c_device
 
+try:
+    from typing import List, Optional
+    from circuitpython_typing import ReadableBuffer
+    from busio import I2C
+except ImportError:
+    pass
+
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_SGP40.git"
 
@@ -107,7 +114,7 @@ class SGP40:
 
     """
 
-    def __init__(self, i2c, address=0x59):
+    def __init__(self, i2c: I2C, address: int = 0x59) -> None:
         self.i2c_device = i2c_device.I2CDevice(i2c, address)
         self._command_buffer = bytearray(2)
         self._measure_command = _READ_CMD
@@ -115,7 +122,7 @@ class SGP40:
 
         self.initialize()
 
-    def initialize(self):
+    def initialize(self) -> None:
         """Reset the sensor to it's initial unconfigured state and configure it with sensible
         defaults so it can be used"""
         # check serial number
@@ -132,7 +139,7 @@ class SGP40:
         featureset = self._read_word_from_command()
         if featureset[0] != 0x3220:
 
-            raise RuntimeError("Feature set does not match: %s" % hex(featureset[0]))
+            raise RuntimeError(f"Feature set does not match: {featureset[0]:#x}")
 
         # Self Test
         self._command_buffer[0] = 0x28
@@ -142,7 +149,7 @@ class SGP40:
             raise RuntimeError("Self test failed")
         self._reset()
 
-    def _reset(self):
+    def _reset(self) -> None:
         # This is a general call Reset. Several sensors may see this and it doesn't appear to
         # ACK before resetting
         self._command_buffer[0] = 0x00
@@ -156,7 +163,7 @@ class SGP40:
         sleep(1)
 
     @staticmethod
-    def _celsius_to_ticks(temperature):
+    def _celsius_to_ticks(temperature: float) -> List[int]:
         """
         Converts Temperature in Celsius to 'ticks' which are an input parameter
         the sgp40 can use
@@ -175,7 +182,7 @@ class SGP40:
         return [most_sig_temp_ticks, least_sig_temp_ticks]
 
     @staticmethod
-    def _relative_humidity_to_ticks(humidity):
+    def _relative_humidity_to_ticks(humidity: float) -> List[int]:
         """
         Converts Relative Humidity in % to 'ticks' which are  an input parameter
         the sgp40 can use
@@ -194,7 +201,7 @@ class SGP40:
         return [most_sig_rhumidity_ticks, least_sig_rhumidity_ticks]
 
     @property
-    def raw(self):
+    def raw(self) -> int:
         """The raw gas value"""
         # recycle a single buffer
         self._command_buffer = self._measure_command
@@ -202,7 +209,7 @@ class SGP40:
         self._command_buffer = bytearray(2)
         return read_value[0]
 
-    def measure_raw(self, temperature=25, relative_humidity=50):
+    def measure_raw(self, temperature: float = 25, relative_humidity: float = 50):
         """
         A humidity and temperature compensated raw gas value which helps
         address fluctuations in readings due to changing humidity.
@@ -225,7 +232,9 @@ class SGP40:
         self._measure_command = bytearray(_cmd)
         return self.raw
 
-    def measure_index(self, temperature=25, relative_humidity=50):
+    def measure_index(
+        self, temperature: float = 25, relative_humidity: float = 50
+    ) -> int:
         """Measure VOC index after humidity compensation
         :param float temperature: The temperature in degrees Celsius, defaults to :const:`25`
         :param float relative_humidity: The relative humidity in percentage, defaults to :const:`50`
@@ -234,7 +243,7 @@ class SGP40:
         :note 0-100, no need to ventilate, purify
         :note 100-200, no need to ventilate, purify
         :note 200-400, ventilate, purify
-        :note 00-500, ventilate, purify intensely
+        :note 400-500, ventilate, purify intensely
         :return int The VOC index measured, ranged from 0 to 500
         """
         # import/setup algorithm only on use of index
@@ -255,9 +264,9 @@ class SGP40:
 
     def _read_word_from_command(
         self,
-        delay_ms=10,
-        readlen=1,
-    ):
+        delay_ms: int = 10,
+        readlen: Optional[int] = 1,
+    ) -> Optional[List[int]]:
         """_read_word_from_command - send a given command code and read the result back
 
         Args:
@@ -291,7 +300,7 @@ class SGP40:
 
         return readdata_buffer
 
-    def _check_crc8(self, crc_buffer, crc_value):
+    def _check_crc8(self, crc_buffer: ReadableBuffer, crc_value: int) -> bool:
         """
         Checks that the 8 bit CRC Checksum value from the sensor matches the
         received data
@@ -299,7 +308,7 @@ class SGP40:
         return crc_value == self._generate_crc(crc_buffer)
 
     @staticmethod
-    def _generate_crc(crc_buffer):
+    def _generate_crc(crc_buffer: ReadableBuffer) -> int:
         """
         Generates an 8 bit CRC Checksum from the input buffer.
 
