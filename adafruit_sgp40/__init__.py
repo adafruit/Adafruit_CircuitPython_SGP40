@@ -138,7 +138,6 @@ class SGP40:
         self._command_buffer[1] = 0x2F
         featureset = self._read_word_from_command()
         if featureset[0] != 0x3220:
-
             raise RuntimeError(f"Feature set does not match: {featureset[0]:#x}")
 
         # Self Test
