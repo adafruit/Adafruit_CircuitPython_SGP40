@@ -143,7 +143,7 @@ class SGP40:
         # Self Test
         self._command_buffer[0] = 0x28
         self._command_buffer[1] = 0x0E
-        self_test = self._read_word_from_command(delay_ms=250)
+        self_test = self._read_word_from_command(delay_ms=500)
         if self_test[0] != 0xD400:
             raise RuntimeError("Self test failed")
         self._reset()
@@ -204,7 +204,7 @@ class SGP40:
         """The raw gas value"""
         # recycle a single buffer
         self._command_buffer = self._measure_command
-        read_value = self._read_word_from_command(delay_ms=250)
+        read_value = self._read_word_from_command(delay_ms=500)
         self._command_buffer = bytearray(2)
         return read_value[0]
 
