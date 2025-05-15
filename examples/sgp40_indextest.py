@@ -2,8 +2,10 @@
 #
 # SPDX-License-Identifier: Unlicense
 import time
-import board
+
 import adafruit_bme280
+import board
+
 import adafruit_sgp40
 
 # Boards i2c bus
