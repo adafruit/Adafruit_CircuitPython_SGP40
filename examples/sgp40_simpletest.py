@@ -2,7 +2,9 @@
 #
 # SPDX-License-Identifier: Unlicense
 import time
+
 import board
+
 import adafruit_sgp40
 
 # If you have a temperature sensor, like the bme280, import that here as well

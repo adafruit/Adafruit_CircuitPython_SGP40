@@ -29,14 +29,17 @@ Implementation Notes
  * Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
 
 """
-from time import sleep
+
 from struct import unpack_from
+from time import sleep
+
 from adafruit_bus_device import i2c_device
 
 try:
     from typing import List, Optional
-    from circuitpython_typing import ReadableBuffer
+
     from busio import I2C
+    from circuitpython_typing import ReadableBuffer
 except ImportError:
     pass
 
@@ -47,7 +50,7 @@ _WORD_LEN = 2
 
 # no point in generating this each time
 # Generated from temp 25c, humidity 50%
-_READ_CMD = b"\x26\x0F\x80\x00\xA2\x66\x66\x93"
+_READ_CMD = b"\x26\x0f\x80\x00\xa2\x66\x66\x93"
 
 
 class SGP40:
@@ -231,9 +234,7 @@ class SGP40:
         self._measure_command = bytearray(_cmd)
         return self.raw
 
-    def measure_index(
-        self, temperature: float = 25, relative_humidity: float = 50
-    ) -> int:
+    def measure_index(self, temperature: float = 25, relative_humidity: float = 50) -> int:
         """Measure VOC index after humidity compensation
         :param float temperature: The temperature in degrees Celsius, defaults to :const:`25`
         :param float relative_humidity: The relative humidity in percentage, defaults to :const:`50`
@@ -246,7 +247,6 @@ class SGP40:
         :return int The VOC index measured, ranged from 0 to 500
         """
         # import/setup algorithm only on use of index
-        # pylint: disable=import-outside-toplevel
         from adafruit_sgp40.voc_algorithm import (
             VOCAlgorithm,
         )
@@ -321,9 +321,7 @@ class SGP40:
             crc ^= byte
             for _ in range(8):
                 if crc & 0x80:
-                    crc = (
-                        crc << 1
-                    ) ^ 0x31  # 0x31 is the Seed for SGP40's CRC polynomial
+                    crc = (crc << 1) ^ 0x31  # 0x31 is the Seed for SGP40's CRC polynomial
                 else:
                     crc = crc << 1
         return crc & 0xFF  # Returns only bottom 8 bits
