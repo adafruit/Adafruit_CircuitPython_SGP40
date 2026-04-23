@@ -323,5 +323,5 @@ class SGP40:
                 if crc & 0x80:
                     crc = (crc << 1) ^ 0x31  # 0x31 is the Seed for SGP40's CRC polynomial
                 else:
-                    crc = crc << 1
+                    crc <<= 1
         return crc & 0xFF  # Returns only bottom 8 bits
